@@ -6,6 +6,10 @@
 import { Measurements } from "@/components/ui/MeasurementForm";
 import { toast } from "sonner";
 
+// Avatar storage keys
+const AVATAR_URL_KEY = 'avatarApp_avatarUrl';
+const AVATAR_MEASUREMENTS_KEY = 'avatarApp_measurements';
+
 /**
  * Creates a 3D avatar from a photo and measurements
  * This is a placeholder for the actual avatar creation logic
@@ -30,9 +34,32 @@ export const createAvatar = async (
       // to a backend service that would generate the 3D avatar
       const avatarUrl = URL.createObjectURL(photoFile);
       
+      // Save avatar data to localStorage for persistence between pages
+      localStorage.setItem(AVATAR_URL_KEY, avatarUrl);
+      localStorage.setItem(AVATAR_MEASUREMENTS_KEY, JSON.stringify(measurements));
+      
       resolve(avatarUrl);
     }, 2000);
   });
+};
+
+/**
+ * Gets the saved avatar URL from localStorage
+ * 
+ * @returns The saved avatar URL or null if none exists
+ */
+export const getSavedAvatarUrl = (): string | null => {
+  return localStorage.getItem(AVATAR_URL_KEY);
+};
+
+/**
+ * Gets the saved measurements from localStorage
+ * 
+ * @returns The saved measurements or null if none exists
+ */
+export const getSavedMeasurements = (): Measurements | null => {
+  const data = localStorage.getItem(AVATAR_MEASUREMENTS_KEY);
+  return data ? JSON.parse(data) : null;
 };
 
 /**
@@ -51,6 +78,7 @@ export const tryOnClothing = async (
     // Simulate processing time
     setTimeout(() => {
       console.log('Trying on clothing on avatar');
+      toast.success("Clothing applied to avatar");
       
       // In a real implementation, this would send the avatar and clothing
       // to a backend service that would apply the clothing to the avatar
@@ -74,8 +102,8 @@ export const saveAvatar = async (avatarUrl: string): Promise<void> => {
     setTimeout(() => {
       console.log('Saving avatar to profile');
       
-      // In a real implementation, this would save the avatar to the user's profile
-      // in a database or cloud storage
+      // Save to localStorage
+      localStorage.setItem(AVATAR_URL_KEY, avatarUrl);
       
       toast.success("Avatar saved to your profile");
       resolve();

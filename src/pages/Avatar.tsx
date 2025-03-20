@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AvatarCreator from '@/components/avatar/AvatarCreator';
 import AvatarViewer from '@/components/avatar/AvatarViewer';
@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { ShoppingBag, Edit } from 'lucide-react';
 import { Measurements } from '@/components/ui/MeasurementForm';
+import { createAvatar, getSavedAvatarUrl, getSavedMeasurements } from '@/utils/avatarUtils';
 
 const Avatar = () => {
   const navigate = useNavigate();
@@ -17,19 +18,37 @@ const Avatar = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [measurements, setMeasurements] = useState<Measurements | null>(null);
 
-  const handleCreate = (imageFile: File, measurements: Measurements) => {
+  useEffect(() => {
+    // Check if we already have an avatar saved
+    const savedAvatar = getSavedAvatarUrl();
+    const savedMeasurements = getSavedMeasurements();
+    
+    if (savedAvatar) {
+      setAvatarImageUrl(savedAvatar);
+      if (savedMeasurements) {
+        setMeasurements(savedMeasurements);
+      }
+      setIsCreating(false);
+    }
+  }, []);
+
+  const handleCreate = async (imageFile: File, measurements: Measurements) => {
     setUploadedFile(imageFile);
     setMeasurements(measurements);
     setIsProcessing(true);
     
-    // Simulate processing time for avatar creation
-    setTimeout(() => {
-      const imageUrl = URL.createObjectURL(imageFile);
-      setAvatarImageUrl(imageUrl);
+    try {
+      // Use the createAvatar utility which now saves to localStorage
+      const avatarUrl = await createAvatar(imageFile, measurements);
+      setAvatarImageUrl(avatarUrl);
       setIsCreating(false);
-      setIsProcessing(false);
       toast.success("Your 3D avatar has been created!");
-    }, 3000);
+    } catch (error) {
+      console.error("Failed to create avatar:", error);
+      toast.error("Failed to create avatar. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleEdit = () => {
@@ -38,8 +57,6 @@ const Avatar = () => {
 
   const goToCatalog = () => {
     if (avatarImageUrl) {
-      // In a real application, we would save the avatar to the user's profile
-      // and then navigate to the catalog
       navigate('/catalog');
     } else {
       toast.error("Please create your avatar first");

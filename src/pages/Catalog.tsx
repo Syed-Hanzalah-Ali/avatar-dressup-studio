@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from "sonner";
 import { 
   Select, 
   SelectContent,
@@ -15,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Search, Filter, User } from 'lucide-react';
+import { Search, Filter, User, ShoppingBag, Loader } from 'lucide-react';
+import { getSavedAvatarUrl, tryOnClothing } from '@/utils/avatarUtils';
 
 // Mock data for clothing items
 const mockClothingItems: ClothingItem[] = [
@@ -100,9 +102,19 @@ const Catalog = () => {
   const [clothingItems, setClothingItems] = useState<ClothingItem[]>(mockClothingItems);
   const [filteredItems, setFilteredItems] = useState<ClothingItem[]>(mockClothingItems);
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
+  const [isTryingOn, setIsTryingOn] = useState(false);
+  const [avatarWithClothing, setAvatarWithClothing] = useState<string | null>(null);
 
-  // Mock avatar image URL - in a real app, this would come from the user's profile
-  const avatarImageUrl = 'https://images.unsplash.com/photo-1503249023995-51b0f3778ccf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  // Get avatar from localStorage instead of using a hardcoded value
+  const [avatarImageUrl, setAvatarImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for saved avatar when component mounts
+    const savedAvatar = getSavedAvatarUrl();
+    if (savedAvatar) {
+      setAvatarImageUrl(savedAvatar);
+    }
+  }, []);
 
   useEffect(() => {
     // Apply filters
@@ -135,8 +147,33 @@ const Catalog = () => {
     setFilteredItems(results);
   }, [searchQuery, selectedCategory, priceFilter, clothingItems]);
 
-  const handleTryOn = (item: ClothingItem) => {
+  const handleTryOn = async (item: ClothingItem) => {
     setSelectedItem(item);
+    
+    // Only try on clothing if we have an avatar
+    if (avatarImageUrl) {
+      setIsTryingOn(true);
+      
+      try {
+        // Try on the selected clothing item
+        const result = await tryOnClothing(avatarImageUrl, item.imageUrl);
+        setAvatarWithClothing(result);
+        
+        // Auto-switch to try-on view
+        const tabsElement = document.querySelector('[data-orientation="horizontal"]');
+        const tryOnTab = tabsElement?.querySelector('[value="try-on"]') as HTMLButtonElement | null;
+        if (tryOnTab) {
+          tryOnTab.click();
+        }
+      } catch (error) {
+        toast.error("Failed to try on clothing");
+        console.error(error);
+      } finally {
+        setIsTryingOn(false);
+      }
+    } else {
+      toast.error("Please create an avatar first");
+    }
   };
 
   const handleCategoryChange = (category: string) => {
@@ -167,6 +204,7 @@ const Catalog = () => {
             <h2 className="text-xl font-medium mb-4">Filters</h2>
             
             <div className="space-y-4">
+              {/* Search */}
               <div>
                 <label htmlFor="search" className="text-sm font-medium">Search</label>
                 <div className="relative mt-1">
@@ -182,6 +220,7 @@ const Catalog = () => {
                 </div>
               </div>
               
+              {/* Categories */}
               <div>
                 <label className="text-sm font-medium">Categories</label>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -198,6 +237,7 @@ const Catalog = () => {
                 </div>
               </div>
               
+              {/* Price Filter */}
               <div>
                 <label htmlFor="price-filter" className="text-sm font-medium">Price Range</label>
                 <Select
@@ -219,6 +259,7 @@ const Catalog = () => {
             
             <Separator className="my-6" />
             
+            {/* Avatar Section */}
             <div>
               <h3 className="text-lg font-medium mb-3">Your Avatar</h3>
               {avatarImageUrl ? (
@@ -230,17 +271,27 @@ const Catalog = () => {
                   <div className="text-center p-4">
                     <User size={48} className="mx-auto text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground">No avatar created yet</p>
+                    <Button 
+                      variant="default"
+                      size="sm"
+                      className="mt-4"
+                      onClick={handleCreateAvatar}
+                    >
+                      Create Avatar Now
+                    </Button>
                   </div>
                 </div>
               )}
               
-              <Button 
-                variant={avatarImageUrl ? "outline" : "default"} 
-                className="w-full"
-                onClick={handleCreateAvatar}
-              >
-                {avatarImageUrl ? "Edit Avatar" : "Create Avatar"}
-              </Button>
+              {avatarImageUrl && (
+                <Button 
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleCreateAvatar}
+                >
+                  Edit Avatar
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -261,6 +312,7 @@ const Catalog = () => {
               </TabsList>
             </div>
             
+            {/* Grid View */}
             <TabsContent value="grid" className="animate-fade-in">
               {filteredItems.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -279,17 +331,48 @@ const Catalog = () => {
               )}
             </TabsContent>
             
+            {/* Try On View */}
             <TabsContent value="try-on" className="animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-card rounded-lg shadow-sm overflow-hidden border border-border">
                   <div className="p-6">
                     <h3 className="text-lg font-medium mb-4">Your Avatar</h3>
-                    <div className="aspect-[3/4] max-h-96">
-                      <AvatarViewer 
-                        imageUrl={avatarImageUrl} 
-                        isLoading={!avatarImageUrl} 
-                      />
-                    </div>
+                    {isTryingOn ? (
+                      <div className="aspect-[3/4] max-h-96 flex items-center justify-center">
+                        <div className="text-center">
+                          <Loader className="animate-spin h-10 w-10 mx-auto mb-4 text-primary" />
+                          <p className="text-sm text-muted-foreground">Applying clothing to avatar...</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="aspect-[3/4] max-h-96 relative">
+                        <AvatarViewer 
+                          imageUrl={avatarWithClothing || avatarImageUrl || undefined} 
+                          isLoading={!avatarImageUrl}
+                        />
+                        
+                        {selectedItem && avatarWithClothing && (
+                          <div className="absolute top-4 right-4">
+                            <Badge className="bg-green-500 text-white border-green-400">
+                              Wearing: {selectedItem.name}
+                            </Badge>
+                          </div>
+                        )}
+                        
+                        {!avatarImageUrl && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Button
+                              variant="default"
+                              onClick={handleCreateAvatar}
+                              className="gap-2"
+                            >
+                              <User size={16} />
+                              Create Avatar
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -312,8 +395,29 @@ const Catalog = () => {
                             <p className="font-semibold mt-1">${selectedItem.price.toFixed(2)}</p>
                           )}
                         </div>
-                        <div className="pt-4">
-                          <Button className="w-full">Add to Cart</Button>
+                        <div className="pt-4 space-y-2">
+                          <Button 
+                            className="w-full gap-2" 
+                            onClick={() => handleTryOn(selectedItem)}
+                            disabled={isTryingOn || !avatarImageUrl}
+                          >
+                            {isTryingOn ? (
+                              <>
+                                <Loader className="animate-spin h-4 w-4" />
+                                Trying On...
+                              </>
+                            ) : (
+                              <>
+                                <ShoppingBag size={16} />
+                                Try On Again
+                              </>
+                            )}
+                          </Button>
+                          {!avatarImageUrl && (
+                            <p className="text-xs text-muted-foreground text-center">
+                              Create an avatar first to try on clothes
+                            </p>
+                          )}
                         </div>
                       </div>
                     ) : (
