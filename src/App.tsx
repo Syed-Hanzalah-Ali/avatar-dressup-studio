@@ -1,10 +1,26 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { lazy, Suspense } from "react";
+
+// Layout
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+
+// Pages 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+const Profile = lazy(() => import("./pages/Profile"));
+const Avatar = lazy(() => import("./pages/Avatar"));
+const Catalog = lazy(() => import("./pages/Catalog"));
+const Admin = lazy(() => import("./pages/Admin"));
+
+// Loading Fallback
+import LoadingFallback from "@/components/ui/LoadingFallback";
 
 const queryClient = new QueryClient();
 
@@ -14,11 +30,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-grow">
+            <AnimatePresence mode="wait">
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/avatar" element={<Avatar />} />
+                  <Route path="/catalog" element={<Catalog />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </AnimatePresence>
+          </main>
+          <Footer />
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
