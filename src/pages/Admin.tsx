@@ -37,6 +37,7 @@ import {
   Users,
   Box,
   Settings,
+  X,
 } from 'lucide-react';
 
 // Mock catalog items

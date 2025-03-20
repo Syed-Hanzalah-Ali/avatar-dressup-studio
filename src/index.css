@@ -148,7 +148,7 @@
   }
   
   .animate-in {
-    @apply animate-fade-in animate-duration-300;
+    @apply animate-fade-in duration-300;
   }
   
   .transition-smooth {
