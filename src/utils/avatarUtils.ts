@@ -1,10 +1,10 @@
-
 /**
  * Utility functions for avatar creation and manipulation
  */
 
 import { Measurements } from "@/components/ui/MeasurementForm";
 import { toast } from "sonner";
+import { generateKiri3DModel } from "./kiriEngineApi";
 
 // Avatar storage keys
 const AVATAR_URL_KEY = 'avatarApp_avatarUrl';
@@ -12,7 +12,7 @@ const AVATAR_MEASUREMENTS_KEY = 'avatarApp_measurements';
 
 /**
  * Creates a 3D avatar from a photo and measurements
- * This is a placeholder for the actual avatar creation logic
+ * Now using Kiri Engine API for 3D model generation
  * 
  * @param photoFile - The user's uploaded photo
  * @param measurements - The user's body measurements
@@ -22,25 +22,20 @@ export const createAvatar = async (
   photoFile: File,
   measurements: Measurements
 ): Promise<string> => {
-  // This is a mock implementation that would be replaced with actual 3D
-  // avatar creation logic in a production application
-  
-  return new Promise((resolve) => {
-    // Simulate processing time
-    setTimeout(() => {
-      console.log('Creating avatar with measurements:', measurements);
-      
-      // In a real implementation, this would send the photo and measurements
-      // to a backend service that would generate the 3D avatar
-      const avatarUrl = URL.createObjectURL(photoFile);
-      
-      // Save avatar data to localStorage for persistence between pages
-      localStorage.setItem(AVATAR_URL_KEY, avatarUrl);
-      localStorage.setItem(AVATAR_MEASUREMENTS_KEY, JSON.stringify(measurements));
-      
-      resolve(avatarUrl);
-    }, 2000);
-  });
+  try {
+    // Generate 3D model using Kiri Engine API
+    const avatarUrl = await generateKiri3DModel(photoFile, measurements);
+    
+    // Save avatar data to localStorage for persistence between pages
+    localStorage.setItem(AVATAR_URL_KEY, avatarUrl);
+    localStorage.setItem(AVATAR_MEASUREMENTS_KEY, JSON.stringify(measurements));
+    
+    return avatarUrl;
+  } catch (error) {
+    console.error('Error creating avatar:', error);
+    toast.error('Failed to create avatar. Please try again.');
+    throw error;
+  }
 };
 
 /**
