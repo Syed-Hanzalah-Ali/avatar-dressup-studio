@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { generate3DAccessory, AccessoryType } from '@/utils/accessoryUtils';
 import { toast } from 'sonner';
-import { Glasses, Cap, Shirt } from 'lucide-react';
+import { Glasses, GalleryHorizontal, Shirt } from 'lucide-react';
 
 interface AccessoryCreatorProps {
   onComplete: () => void;
@@ -89,7 +89,7 @@ const AccessoryCreator: React.FC<AccessoryCreatorProps> = ({ onComplete }) => {
               <SelectContent>
                 <SelectItem value="cap" className="flex items-center">
                   <div className="flex items-center gap-2">
-                    <Cap className="h-4 w-4" />
+                    <GalleryHorizontal className="h-4 w-4" />
                     <span>Cap / Hat</span>
                   </div>
                 </SelectItem>

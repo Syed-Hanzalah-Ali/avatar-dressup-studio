@@ -7,9 +7,8 @@ import ClothingCreator from '@/components/clothing/ClothingCreator';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Shirt, Cap, Glasses, Gallery } from 'lucide-react';
+import { Shirt, GalleryHorizontal, Glasses, Image } from 'lucide-react';
 import { 
-  getSavedAvatarUrl,
   getSavedAccessories, 
   getSavedClothing,
   Accessory,
@@ -17,6 +16,7 @@ import {
   applyAccessory,
   applyClothing
 } from '@/utils/accessoryUtils';
+import { getSavedAvatarUrl } from '@/utils/avatarUtils';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -135,11 +135,11 @@ const Customize = () => {
             >
               <TabsList className="grid grid-cols-4 mb-6">
                 <TabsTrigger value="accessories" className="flex flex-col items-center py-2 px-1">
-                  <Cap className="h-4 w-4 mb-1" />
+                  <GalleryHorizontal className="h-4 w-4 mb-1" />
                   <span className="text-xs">Add Accessory</span>
                 </TabsTrigger>
                 <TabsTrigger value="accessories-list" className="flex flex-col items-center py-2 px-1">
-                  <Gallery className="h-4 w-4 mb-1" />
+                  <Image className="h-4 w-4 mb-1" />
                   <span className="text-xs">My Accessories</span>
                 </TabsTrigger>
                 <TabsTrigger value="clothing" className="flex flex-col items-center py-2 px-1">
@@ -147,7 +147,7 @@ const Customize = () => {
                   <span className="text-xs">Add Clothing</span>
                 </TabsTrigger>
                 <TabsTrigger value="clothing-list" className="flex flex-col items-center py-2 px-1">
-                  <Gallery className="h-4 w-4 mb-1" />
+                  <Image className="h-4 w-4 mb-1" />
                   <span className="text-xs">My Clothing</span>
                 </TabsTrigger>
               </TabsList>
