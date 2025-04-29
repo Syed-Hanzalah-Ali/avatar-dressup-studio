@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { RotateCw, ZoomIn, ZoomOut, Maximize2, Download, Cube } from 'lucide-react';
+import { RotateCw, ZoomIn, ZoomOut, Maximize2, Download, Image3D } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface AvatarViewerProps {
@@ -89,7 +89,7 @@ const AvatarViewer: React.FC<AvatarViewerProps> = ({
               />
               <div className="absolute top-2 right-2">
                 <Badge className="bg-blue-500 text-white border-blue-400 flex items-center gap-1">
-                  <Cube size={12} />
+                  <Image3D size={12} />
                   <span>Kiri Engine 3D</span>
                 </Badge>
               </div>
